@@ -10,6 +10,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -18,6 +19,10 @@ import javax.annotation.PreDestroy;
 @Component
 public class NettyServer {
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
+    
+    @Value("${netty.server.port}")
+    private int port;
+    
     private final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
     private final EventLoopGroup workerGroup = new NioEventLoopGroup();
     private ChannelFuture channelFuture;
@@ -37,11 +42,8 @@ public class NettyServer {
                 .option(ChannelOption.SO_BACKLOG, 128)
                 .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-            channelFuture = bootstrap.bind(8080).sync();
-            logger.info("Netty Server started on port 8080");
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new NettyServerException("Server startup interrupted", e);
+            channelFuture = bootstrap.bind(port).sync();
+            logger.info("Netty Server started on port {}", port);
         } catch (Exception e) {
             logger.error("Error starting Netty Server", e);
             throw new NettyServerException("Error starting Netty Server", e);
@@ -49,23 +51,17 @@ public class NettyServer {
     }
 
     @PreDestroy
-    public void stop() throws InterruptedException {
+    public void stop() {
         try {
             if (channelFuture != null) {
                 channelFuture.channel().close().sync();
             }
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+            logger.info("Netty Server stopped");
         } catch (InterruptedException e) {
-            logger.error("Server shutdown interrupted", e);
+            logger.error("Error stopping Netty Server", e);
             Thread.currentThread().interrupt();
-            throw e; // Propagate the interruption
-        }
-    }
-
-    public static class NettyServerException extends Exception {
-        public NettyServerException(String message, Throwable cause) {
-            super(message, cause);
         }
     }
 }
