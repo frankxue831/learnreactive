@@ -11,6 +11,11 @@ public class ServerBootstrap {
         this.eventLoop = new EventLoop();
     }
 
+    public static void main(String[] args) throws IOException {
+        ServerBootstrap bootstrap = new ServerBootstrap();
+        bootstrap.bind(8080);
+    }
+
     public void bind(int port) throws IOException {
         ServerSocketChannel serverChannel = ServerSocketChannel.open();
         serverChannel.bind(new InetSocketAddress(port));
@@ -18,11 +23,6 @@ public class ServerBootstrap {
         eventLoop.registerChannel(serverChannel);
         new Thread(eventLoop).start();
         System.out.println("Server started on port " + port);
-    }
-
-    public static void main(String[] args) throws IOException {
-        ServerBootstrap bootstrap = new ServerBootstrap();
-        bootstrap.bind(8080);
     }
 }
 

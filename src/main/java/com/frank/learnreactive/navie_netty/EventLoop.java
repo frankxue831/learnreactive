@@ -1,10 +1,10 @@
 package com.frank.learnreactive.navie_netty;
 
 import java.io.IOException;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.nio.channels.SelectionKey;
 
 public class EventLoop implements Runnable {
     private final Selector selector;
